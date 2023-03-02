@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "*.asm": "arduino-output",
+        "main.h": "c",
+        "stm32f4xx_hal.h": "c",
+        "stm32f4xx_ll_fsmc.h": "c",
+        "stm32f4xx_ll_fmc.h": "c",
+        "stm32f4xx_hal_def.h": "c",
+        "stddef.h": "c",
+        "pch.h": "c",
+        "functional": "cpp"
+    }
+}

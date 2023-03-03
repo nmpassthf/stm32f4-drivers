@@ -4,6 +4,7 @@
 #include "pch.h"
 std::vector<uint32_t> v;
 uint64_t* p = nullptr;
+
 void cppfn(std::function<void(uint64_t)> callback) {
     LED1_ON;
     HAL_Delay(200);

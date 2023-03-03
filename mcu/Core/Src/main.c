@@ -21,6 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <sdram.h>
 
 /* USER CODE END Includes */
 
@@ -43,9 +44,11 @@ DMA2D_HandleTypeDef hdma2d;
 
 UART_HandleTypeDef huart1;
 
-SDRAM_HandleTypeDef hsdram1;
+SDRAM_HandleTypeDef hsdram2;
 
 /* USER CODE BEGIN PV */
+
+FMC_SDRAM_CommandTypeDef command;	// ????
 
 /* USER CODE END PV */
 
@@ -101,19 +104,19 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  	GPIO_InitTypeDef GPIO_InitStruct = {0};
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
 
 
 	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);		// LED1引脚输出低，即点亮LED1
 	HAL_GPIO_WritePin(GPIOG, GPIO_PIN_7, GPIO_PIN_RESET);		// LED2引脚输出低，即点亮LED2
 
-	GPIO_InitStruct.Pin 		= GPIO_PIN_12;					// LED1引脚
+	GPIO_InitStruct.Pin 	= GPIO_PIN_12;				  // LED1引脚
 	GPIO_InitStruct.Mode 	= GPIO_MODE_OUTPUT_PP;	// 推挽输出模式
-	GPIO_InitStruct.Pull 	= GPIO_NOPULL;				// 不上下拉
-	GPIO_InitStruct.Speed 	= GPIO_SPEED_FREQ_LOW;	// 
+	GPIO_InitStruct.Pull 	= GPIO_NOPULL;				  // 不上下拉
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-	GPIO_InitStruct.Pin = GPIO_PIN_7;						// LED2引脚
+	GPIO_InitStruct.Pin = GPIO_PIN_7;						  // LED2引脚
 	HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
 
@@ -180,10 +183,6 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-
-  /** Enables the Clock Security System
-  */
-  HAL_RCC_EnableCSS();
 }
 
 /**
@@ -270,37 +269,36 @@ static void MX_FMC_Init(void)
 
   /* USER CODE END FMC_Init 1 */
 
-  /** Perform the SDRAM1 memory initialization sequence
+  /** Perform the SDRAM2 memory initialization sequence
   */
-  hsdram1.Instance = FMC_SDRAM_DEVICE;
-  /* hsdram1.Init */
-  hsdram1.Init.SDBank = FMC_SDRAM_BANK1;
-  hsdram1.Init.ColumnBitsNumber = FMC_SDRAM_COLUMN_BITS_NUM_8;
-  hsdram1.Init.RowBitsNumber = FMC_SDRAM_ROW_BITS_NUM_12;
-  hsdram1.Init.MemoryDataWidth = FMC_SDRAM_MEM_BUS_WIDTH_32;
-  hsdram1.Init.InternalBankNumber = FMC_SDRAM_INTERN_BANKS_NUM_4;
-  hsdram1.Init.CASLatency = FMC_SDRAM_CAS_LATENCY_1;
-  hsdram1.Init.WriteProtection = FMC_SDRAM_WRITE_PROTECTION_DISABLE;
-  hsdram1.Init.SDClockPeriod = FMC_SDRAM_CLOCK_PERIOD_2;
-  hsdram1.Init.ReadBurst = FMC_SDRAM_RBURST_DISABLE;
-  hsdram1.Init.ReadPipeDelay = FMC_SDRAM_RPIPE_DELAY_0;
+  hsdram2.Instance = FMC_SDRAM_DEVICE;
+  /* hsdram2.Init */
+  hsdram2.Init.SDBank = FMC_SDRAM_BANK2;
+  hsdram2.Init.ColumnBitsNumber = FMC_SDRAM_COLUMN_BITS_NUM_8;
+  hsdram2.Init.RowBitsNumber = FMC_SDRAM_ROW_BITS_NUM_12;
+  hsdram2.Init.MemoryDataWidth = FMC_SDRAM_MEM_BUS_WIDTH_32;
+  hsdram2.Init.InternalBankNumber = FMC_SDRAM_INTERN_BANKS_NUM_4;
+  hsdram2.Init.CASLatency = FMC_SDRAM_CAS_LATENCY_3;
+  hsdram2.Init.WriteProtection = FMC_SDRAM_WRITE_PROTECTION_DISABLE;
+  hsdram2.Init.SDClockPeriod = FMC_SDRAM_CLOCK_PERIOD_2;
+  hsdram2.Init.ReadBurst = FMC_SDRAM_RBURST_ENABLE;
+  hsdram2.Init.ReadPipeDelay = FMC_SDRAM_RPIPE_DELAY_1;
   /* SdramTiming */
-  SdramTiming.LoadToActiveDelay = 16;
-  SdramTiming.ExitSelfRefreshDelay = 16;
-  SdramTiming.SelfRefreshTime = 16;
-  SdramTiming.RowCycleDelay = 16;
-  SdramTiming.WriteRecoveryTime = 16;
-  SdramTiming.RPDelay = 16;
-  SdramTiming.RCDDelay = 16;
+  SdramTiming.LoadToActiveDelay = 2;
+  SdramTiming.ExitSelfRefreshDelay = 7;
+  SdramTiming.SelfRefreshTime = 4;
+  SdramTiming.RowCycleDelay = 7;
+  SdramTiming.WriteRecoveryTime = 3;
+  SdramTiming.RPDelay = 2;
+  SdramTiming.RCDDelay = 2;
 
-  if (HAL_SDRAM_Init(&hsdram1, &SdramTiming) != HAL_OK)
+  if (HAL_SDRAM_Init(&hsdram2, &SdramTiming) != HAL_OK)
   {
     Error_Handler( );
   }
 
   /* USER CODE BEGIN FMC_Init 2 */
-
-  /* USER CODE END FMC_Init 2 */
+  m_hw_sdram_init(&hsdram2,&command);
 }
 
 /**
@@ -325,7 +323,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+#include "pch.h"
 /* USER CODE END 4 */
 
 /**
@@ -339,6 +337,14 @@ void Error_Handler(void)
   __disable_irq();
   while (1)
   {
+    LED2_OFF();
+    __enable_irq();
+    HAL_Delay(100);
+    __disable_irq();
+    LED2_ON();
+    __enable_irq();
+    HAL_Delay(100);
+    __disable_irq();
   }
   /* USER CODE END Error_Handler_Debug */
 }

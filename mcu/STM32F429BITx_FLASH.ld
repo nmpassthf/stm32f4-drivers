@@ -64,6 +64,7 @@ MEMORY
 RAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 192K
 CCMRAM (xrw)      : ORIGIN = 0x10000000, LENGTH = 64K
 FLASH (rx)      : ORIGIN = 0x8000000, LENGTH = 2048K
+EXT_DRAM (xrw)      : ORIGIN = 0xD0000000, LENGTH = 16000K
 }
 
 /* Define output sections */
@@ -130,6 +131,11 @@ SECTIONS
     KEEP (*(.fini_array*))
     PROVIDE_HIDDEN (__fini_array_end = .);
   } >FLASH
+  /* sdram  */
+  .sdram1block (NOLOAD) :
+  {
+    KEEP(*(.sdram1section))
+  } > EXT_DRAM
 
   /* used by the startup to initialize data */
   _sidata = LOADADDR(.data);

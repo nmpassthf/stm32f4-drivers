@@ -23,10 +23,7 @@ PREFIX = arm-none-eabi-
 C_SOURCES =  \
     $(wildcard App/Src/*.c) \
     $(wildcard mcu/Drivers/STM32F4xx_HAL_Driver/Src/*.c)\
-    mcu/Core/Src/main.c \
-    mcu/Core/Src/stm32f4xx_it.c \
-    mcu/Core/Src/stm32f4xx_hal_msp.c \
-    mcu/Core/Src/system_stm32f4xx.c
+    $(wildcard mcu/Core/Src/*.c)
 
 #C_INCLUDES
 C_INCLUDES = \

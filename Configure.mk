@@ -1,3 +1,6 @@
+######################################
+# CONFIGS
+######################################
 # debug build?
 DEBUG = 1
 
@@ -19,37 +22,20 @@ PREFIX = arm-none-eabi-
 ######################################
 C_SOURCES =  \
     $(wildcard App/Src/*.c) \
-    Core/Src/main.c \
-    Core/Src/stm32f4xx_it.c \
-    Core/Src/stm32f4xx_hal_msp.c \
-    Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_fmc.c \
-    Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c \
-    Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.c \
-    Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.c \
-    Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.c \
-    Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ramfunc.c \
-    Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c \
-    Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.c \
-    Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c \
-    Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.c \
-    Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.c \
-    Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c \
-    Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c \
-    Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c \
-    Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_sram.c \
-    Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c \
-    Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c \
-    Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c \
-    Core/Src/system_stm32f4xx.c
+    $(wildcard mcu/Drivers/STM32F4xx_HAL_Driver/Src/*.c)\
+    mcu/Core/Src/main.c \
+    mcu/Core/Src/stm32f4xx_it.c \
+    mcu/Core/Src/stm32f4xx_hal_msp.c \
+    mcu/Core/Src/system_stm32f4xx.c
 
 #C_INCLUDES
 C_INCLUDES = \
     -IApp/Inc \
-    -ICore/Inc \
-    -IDrivers/STM32F4xx_HAL_Driver/Inc \
-    -IDrivers/STM32F4xx_HAL_Driver/Inc/Legacy \
-    -IDrivers/CMSIS/Device/ST/STM32F4xx/Include \
-    -IDrivers/CMSIS/Include
+    -Imcu/Core/Inc \
+    -Imcu/Drivers/STM32F4xx_HAL_Driver/Inc \
+    -Imcu/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy \
+    -Imcu/Drivers/CMSIS/Device/ST/STM32F4xx/Include \
+    -Imcu/Drivers/CMSIS/Include
 
 ######################################
 # C++ source
@@ -71,12 +57,6 @@ FPU = -mfpu=fpv4-sp-d16
 
 # float-abi
 FLOAT-ABI = -mfloat-abi=hard
-
-ifeq ($(DEBUG), 1)
-CFLAGS += -g -gdwarf-2 -ggdb
-else
-CFLAGS += -flto
-endif
 
 # C defines
 # -DUSE_FULL_LL_DRIVER
@@ -101,10 +81,12 @@ CPP_DEFS = \
 #######################################
 
 ASM_SOURCES =  \
-    startup_stm32f429xx.s
+    mcu/startup_stm32f429xx.s
 
 #######################################
 # LDFLAGS
 #######################################
 # link script
-LDSCRIPT = STM32F429BITx_FLASH.ld
+LDSCRIPT = mcu/STM32F429BITx_FLASH.ld
+
+LDSPECSFLAGS = -specs=nano.specs -specs=nosys.specs

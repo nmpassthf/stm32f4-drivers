@@ -73,6 +73,12 @@ ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffuncti
 
 CFLAGS += $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 
+ifeq ($(DEBUG), 1)
+CFLAGS += -g -gdwarf-2 -ggdb
+else
+CFLAGS += -flto
+endif
+
 # Generate dependency information
 CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 
@@ -80,7 +86,16 @@ CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 # CPPFLAGS
 #######################################
 
-CPPFLAGS += $(CPP_VER) $(CPP_DEFS) $(C_DEFS) $(MCU) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections -ggdb
+CPPFLAGS += $(CPP_VER) $(CPP_DEFS) $(C_DEFS) $(MCU) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
+
+ifeq ($(DEBUG), 1)
+CPPFLAGS += -flto -ggdb
+else
+CPPFLAGS += -flto
+endif
+
+# Generate dependency information
+CPPFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 
 #######################################
 # LDFLAGS
@@ -89,7 +104,7 @@ CPPFLAGS += $(CPP_VER) $(CPP_DEFS) $(C_DEFS) $(MCU) $(C_INCLUDES) $(OPT) -Wall -
 # libraries
 LIBS = -lc -lm -lnosys 
 LIBDIR = 
-LDFLAGS = $(MCU) -specs=nano.specs -specs=nosys.specs $(CPP_VER) -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
+LDFLAGS = $(MCU) $(LDSPECSFLAGS) $(CPP_VER) -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
 
 ifeq ($(DEBUG), 0)
 LDFLAGS += -flto 

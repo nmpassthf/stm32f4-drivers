@@ -1,5 +1,5 @@
 build
 target
 mcu/Makefile
-mcu/Src/Backup
-mcu/Inc/Backup
+mcu/Core/Src/Backup
+mcu/Core/Inc/Backup

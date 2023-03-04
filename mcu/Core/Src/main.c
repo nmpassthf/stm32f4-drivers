@@ -337,14 +337,7 @@ void Error_Handler(void)
   __disable_irq();
   while (1)
   {
-    LED2_OFF();
-    __enable_irq();
-    HAL_Delay(100);
-    __disable_irq();
-    LED2_ON();
-    __enable_irq();
-    HAL_Delay(100);
-    __disable_irq();
+    error_led_light();
   }
   /* USER CODE END Error_Handler_Debug */
 }

@@ -1,3 +1,12 @@
+/**
+ * @file sdram.h
+ * @author nmpassthf (nmpassthf@gmail.com)
+ * @brief 
+ * @date 2023-03-03
+ * 
+ * @copyright Copyright (c) nmpassthf 2023
+ * 
+ */
 #ifndef __M_HW_SDRAM_H__
 #define __M_HW_SDRAM_H__
 

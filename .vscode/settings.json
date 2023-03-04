@@ -9,6 +9,7 @@
         "stddef.h": "c",
         "pch.h": "c",
         "functional": "cpp",
-        "sdram.h": "c"
+        "sdram.h": "c",
+        "array": "cpp"
     }
 }

@@ -1,3 +1,12 @@
+/**
+ * @file sdram.c
+ * @author nmpassthf (nmpassthf@gmail.com)
+ * @brief 
+ * @date 2023-03-03
+ * 
+ * @copyright Copyright (c) nmpassthf 2023
+ * 
+ */
 #include "sdram.h"
 
 void SDRAM_delay(__IO uint32_t nCount) {

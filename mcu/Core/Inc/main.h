@@ -57,7 +57,13 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define KEY_ONBORD_Pin GPIO_PIN_8
+#define KEY_ONBORD_GPIO_Port GPIOI
+#define LTDC_BL_Pin GPIO_PIN_13
+#define LTDC_BL_GPIO_Port GPIOD
 /* USER CODE BEGIN Private defines */
+#define SYS_CLOCK_SPEED_MHZ 180
+#define PLL_SAI_INPUT_MHZ 180
 
 /* USER CODE END Private defines */
 

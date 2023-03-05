@@ -8,6 +8,7 @@
  * 
  */
 #include "sdram.h"
+#include "main.h"
 
 void SDRAM_delay(__IO uint32_t nCount) {
     __IO uint32_t index = 0;

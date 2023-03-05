@@ -55,7 +55,12 @@ void SVC_Handler(void);
 void DebugMon_Handler(void);
 void PendSV_Handler(void);
 void SysTick_Handler(void);
+void RCC_IRQHandler(void);
 void USART1_IRQHandler(void);
+void FMC_IRQHandler(void);
+void LTDC_IRQHandler(void);
+void LTDC_ER_IRQHandler(void);
+void DMA2D_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */

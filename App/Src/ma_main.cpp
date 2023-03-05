@@ -1,19 +1,21 @@
-/**
- * @file ma_main.cpp
- * @author nmpassthf (nmpassthf@gmail.com)
- * @brief
- * @date 2023-03-03
- *
- * @copyright Copyright (c) nmpassthf 2023
- *
- */
+// /**
+//  * @file ma_main.cpp
+//  * @author nmpassthf (nmpassthf@gmail.com)
+//  * @brief
+//  * @date 2023-03-03
+//  *
+//  * @copyright Copyright (c) nmpassthf 2023
+//  *
+//  */
 #include <functional>
 
 #include "mt_led.hpp"
 #include "pch.h"
-#include "sdram.h"
 
-extern SDRAM_HandleTypeDef hsdram1;
+extern "C" {
+#include "lcd.h"
+#include "sdram.h"
+}
 
 uint8_t SDRAM_Test(void) {
     uint32_t i = 0;         // 计数变量
@@ -46,41 +48,52 @@ uint8_t SDRAM_Test(void) {
     }
     return SUCCESS;  // 返回成功标志
 }
-#include "array"
-std::array<uint32_t, 1024> arr __section(".sdram1section");
 
 extern "C" {
+
 // Init your peripherals in mcu/Core/*
 // App/* is only your Application level code range.
-
-uint32_t __IO memBlock[1024] __section(".sdram1section");
-uint32_t __IO stackA[1024] __attribute__((__section__(".sdram1section")));
-
 void maMain(void) {
     // USER CPP MAIN RANGE
     // Simple light-up app.
+
     auto fnExpamle = [&]() {
         LED1_ON();
         HAL_Delay(100);
         LED1_OFF();
         HAL_Delay(100);
     };
+    fnExpamle();
 
-    for (auto i = 0; i < 3; ++i) fnExpamle();
+    const auto transData = "Hello World";
+    HAL_UART_Transmit(&huart1, (const uint8_t*)transData, 12, -1);
 
-    HAL_Delay(500);
+    LCD_SetBackColor(0xFFFFFFFF);
+    LCD_SetLayer(0);
+    LCD_Clear();
 
-    uint32_t m[3] = {233, SDRAM_Test() == SUCCESS, (uint32_t)memBlock};
+    LCD_SetLayer(1);
+    LCD_SetColor(0x00000000);
+    LCD_Clear();
 
-    for (auto i{0}; i < 3; ++i) {
-        memBlock[i] = m[i];
-    }
-    for (auto i{0}; i < 3; ++i) {
-        m[2 - i] = memBlock[i];
-    }
+    LCD_SetLayer(0);
+    LCD_SetColor(0xffFFFFFF);
+    LCD_FillRect(0, 0, 800, 480);
 
-    for (auto& i : arr) {
-		i = 1;
+    LCD_SetLayer(1);
+    while (1) {
+        LCD_SetColor(0xffffffff);  //	设置画笔色
+        for (auto i = 0; i < 150; i++) {
+            LCD_FillRect(100, 330, 4 * i, 6);
+            HAL_Delay(10);
+        }
+        LCD_SetColor(0xff000000);  //	设置画笔色
+        for (auto i = 0; i < 150; i++) {
+            LCD_FillRect(100, 330, 4 * i, 6);
+            HAL_Delay(10);
+        }
+        HAL_Delay(100);
+        LCD_Clear();
     }
 }
 }

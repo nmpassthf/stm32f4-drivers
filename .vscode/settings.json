@@ -10,6 +10,11 @@
         "pch.h": "c",
         "functional": "cpp",
         "sdram.h": "c",
-        "array": "cpp"
+        "array": "cpp",
+        "iostream": "cpp",
+        "ostream": "cpp",
+        "iosfwd": "cpp",
+        "lcd_font.h": "c",
+        "stdint.h": "c"
     }
 }

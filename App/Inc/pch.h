@@ -15,15 +15,24 @@ extern "C" {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wvolatile"
 #include <stm32f4xx_hal.h>
+#include "main.h"
 #pragma GCC diagnostic pop
 #endif  // __cplusplus
 
 #include <stdint.h>
 
+extern DMA2D_HandleTypeDef hdma2d;
+
+extern UART_HandleTypeDef huart1;
+
+extern SDRAM_HandleTypeDef hsdram2;
+
+extern FMC_SDRAM_CommandTypeDef command;	
+
 extern void error_led_light(void);
 
 #ifdef __cplusplus
 }
-#endif  // __cplusplus
+#endif  // !__cplusplus
 
 #endif  // !__M_PCH_H__

@@ -1,0 +1,22 @@
+[1] 移植FATFS
+初始化发生在 BSP_SD_Init 中
+MX_FATFS_Init 仅挂载驱动至FATFS
+MX_SDIO_SD_Init 仅设置参数
+
+使用 SD_Driver.disk_initialize(0); 以初始化SD卡
+
+SD_initialize函数 中的 BSP_SD_Init()函数分析：
+1、检查是否将SD卡插入卡槽 引脚为低电平表示SD卡已插入
+2、SD卡初始化
+3、SD卡初始化成功后 将 1 位数据总线切换成 4 位数据总线 
+
+BSP_SD_Init 函数 中的SD 卡初始化函数HAL_SD_Init(&hsd) 如下：
+1、初始化GPIO、时钟等
+2、初始化SD卡参数
+
+HAL_SD_Init函数 中的SD卡初始化参数HAL_SD_InitCard(hsd) 如下：
+1、使用SDIO外设默认参数初始化SD卡
+    重点是参数 Init.ClockDiv = SDIO_INIT_CLK_DIV;  SDIO_CK 引脚的时钟信号在卡识别模式时要求不超过400KHz
+2、使用默认参数初始化SDIO外设接口 
+3、给SDIO外设上电 SDIO上电前需要关闭SDIO时钟 SDIO上电后再开启SDIO时钟。
+4、SD卡识别和相关 SD 卡状态获取 函数SD_PowerON(hsd) 

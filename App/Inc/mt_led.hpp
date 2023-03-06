@@ -1,13 +1,13 @@
 /**
  * @file mt_led.hpp
  * @author nmpassthf (nmpassthf@gmail.com)
- * @brief 
+ * @brief
  * @date 2023-03-04
- * 
+ *
  * @copyright Copyright (c) nmpassthf 2023
- * 
+ *
  */
-#ifndef __MT_LED_HPP__
+#pragma once
 
 #include "pch.h"
 
@@ -25,5 +25,6 @@
 #define LED2_ON() HAL_GPIO_WritePin(LED2_PORT, LED2_PIN, GPIO_PIN_RESET)
 #define LED2_OFF() HAL_GPIO_WritePin(LED2_PORT, LED2_PIN, GPIO_PIN_SET)
 
-#endif // !__MT_LED_HPP__
+extern void error_led_light(void);
+extern void normal_led_light(void);
 

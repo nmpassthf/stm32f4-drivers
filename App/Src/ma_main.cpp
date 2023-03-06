@@ -7,78 +7,161 @@
 //  * @copyright Copyright (c) nmpassthf 2023
 //  *
 //  */
-#include <functional>
 
-#include "mt_led.hpp"
-#include "pch.h"
+#include <functional>
+#include <string>
+
+static void lcdBackgroundDraw();
+static void drawTim();
+static void drawLoading();
 
 extern "C" {
+#include <string.h>
+
+#include "diskio.h"
+#include "fatfs.h"
 #include "lcd.h"
+#include "mt_led.hpp"
+#include "mt_tests.hpp"
+#include "mt_timer.hpp"
+#include "pch.h"
 #include "sdram.h"
-}
 
-uint8_t SDRAM_Test(void) {
-    uint32_t i = 0;         // 计数变量
-    uint32_t ReadData = 0;  // 读取到的数据
-    uint8_t ReadData_8b;
+extern SD_HandleTypeDef hsd;
+HAL_SD_CardInfoTypeDef SDCardInfo;
+FATFS fs;
+// Init your peripherals in mcu/Core/*
+// App/* is only your Application level code range.
+void maMain(void) {
+    lcdBackgroundDraw();
 
-    for (i = 0; i < 0x01000000 / 4; i++) {
-        *(__IO uint32_t *)(SDRAM_BANK_ADDR + 4 * i) = i;  // 写入数据
+    const char transData[] = "Hello World !";
+    // auto print = [&](auto word, auto size) {
+    //     HAL_UART_Transmit(&huart1, (const uint8_t *)word, size, -1);
+    // };
+    // auto printd = [&](auto word) {
+    //     HAL_UART_Transmit(&huart1, (const uint8_t *)word, strlen(word), -1);
+    // };
+    // print(transData, sizeof(transData));
+    // auto hal_err = HAL_UART_Transmit(&huart1, (const uint8_t *)transData,
+    //                                  14, -1);
+
+    drawLoading();
+    // mount the default drive
+    auto MyFile_Res = f_mount(&fs, "0:", 1);
+    if (MyFile_Res != FR_OK) {
+        while (1)
+            ;
     }
 
-    for (i = 0; i < 0x01000000 / 4; i++) {
-        ReadData =
-            *(__IO uint32_t *)(SDRAM_BANK_ADDR + 4 * i);  // 从SDRAM读出数据
-        if (ReadData != i)  // 检测数据，若不相等，跳出函数,返回检测失败结果。
-        {
-            return ERROR;  // 返回失败标志
+    while (1) {
+        // uint64_t CardCap;  // SD卡容量
+        // HAL_SD_CardCIDTypeDef SDCard_CID;
+
+        // HAL_SD_GetCardCID(&hsd, &SDCard_CID);   // 获取CID
+        // HAL_SD_GetCardInfo(&hsd, &SDCardInfo);  // 获取SD卡信息
+        // CardCap = (uint64_t)(SDCardInfo.LogBlockNbr) *
+        //           (uint64_t)(SDCardInfo.LogBlockSize);  // 计算SD卡容量
+        // switch (SDCardInfo.CardType) {
+        //     case CARD_SDSC: {
+        //         if (SDCardInfo.CardVersion == CARD_V1_X)
+        //             printf("Card Type:SDSC V1\r\n");
+        //         else if (SDCardInfo.CardVersion == CARD_V2_X)
+        //             printf("Card Type:SDSC V2\r\n");
+        //     } break;
+        //     case CARD_SDHC_SDXC:
+        //         printf("Card Type:SDHC\r\n");
+        //         break;
+        //     default:
+        //         break;
+        // }
+        char buf[512]{0};
+
+        UINT flen{};
+        // uint32_t freeClust;
+        // FATFS *fs_ptr = &fs;
+        // // Warning! This fills fs.n_fatent and fs.csize!
+        // MyFile_Res = f_getfree("0:", &freeClust, &fs_ptr);
+
+        // uint32_t totalBlocks = (fs.n_fatent - 2) * fs.csize;
+        // uint32_t freeBlocks = freeClust * fs.csize;
+
+        // DIR dir;
+        // MyFile_Res = f_opendir(&dir, "0:/");
+
+        // FILINFO fileInfo;
+        // uint32_t totalFiles = 0;
+        // uint32_t totalDirs = 0;
+        // for (;;) {
+        //     MyFile_Res = f_readdir(&dir, &fileInfo);
+        //     if ((MyFile_Res != FR_OK) || (fileInfo.fname[0] == '\0')) {
+        //         break;
+        //     }
+
+        //     if (fileInfo.fattrib & AM_DIR) {
+        //         printd(fileInfo.fname);
+        //         totalDirs++;
+        //     } else {
+        //         printd(fileInfo.fname);
+        //         totalFiles++;
+        //     }
+        // }
+        // MyFile_Res = f_closedir(&dir);
+        FIL MyFile;
+        MyFile_Res = f_open(&MyFile, "0:/FatFs Test.txt", FA_CREATE_ALWAYS | FA_WRITE);
+        char strp[] = "中国汉字博大精深";
+        if (MyFile_Res == FR_OK) {
+            printf("文件打开/创建成功，准备写入数据...\r\n");
+
+            MyFile_Res = f_write(&MyFile, strp, sizeof(strp),
+                          &flen);  // 向文件写入数据
+            if (MyFile_Res == FR_OK) {
+            } else {
+                f_close(&MyFile);  // 关闭文件
+            }
         }
-    }
+        FIL fp{};
+        MyFile_Res = f_open(&fp, "0:/zyp.txt", FA_READ | FA_OPEN_EXISTING);
+        MyFile_Res = f_read(&fp, buf, 512, &flen);
+        MyFile_Res = f_close(&fp);
 
-    for (i = 0; i < 255; i++) {
-        *(__IO uint8_t *)(SDRAM_BANK_ADDR + i) = i;
+        // str = std::wstring{buf, 512};
+        // print(buf, wcslen(buf));
+
+        drawTim();
     }
-    for (i = 0; i < 255; i++) {
-        ReadData_8b = *(__IO uint8_t *)(SDRAM_BANK_ADDR + i);
-        if (ReadData_8b !=
-            (uint8_t)i)  // 检测数据，若不相等，跳出函数,返回检测失败结果。
-        {
-            return ERROR;  // 返回失败标志
-        }
-    }
-    return SUCCESS;  // 返回成功标志
 }
-auto drawLoading = []() {
+}
+static void drawLoading() {
+    LCD_SetLayer(1);
     LCD_SetColor(0xffFFFFFF);
     LCD_DisplayChar(380 + 32 * 1, 230, 'N');
     LCD_DisplayChar(380 + 32 * 2, 230, 'o');
     LCD_DisplayChar(380 + 32 * 3, 230, 'w');
     LCD_DisplayChar(380 + 32 * 4, 230, ' ');
     LCD_DisplayChar(380 + 32 * 5, 230, 'L');
-    LCD_DisplayChar(380 + 32 * 6, 230, ':o');
-    LCD_DisplayChar(380 + 32 * 7, 230, ':a');
-    LCD_DisplayChar(380 + 32 * 8, 230, ':d');
-    LCD_DisplayChar(380 + 32 * 9, 230, ':i');
-    LCD_DisplayChar(380 + 32 * 10, 230, ':n');
-    LCD_DisplayChar(380 + 32 * 11, 230, ':g');
+    LCD_DisplayChar(380 + 32 * 6, 230, 'o');
+    LCD_DisplayChar(380 + 32 * 7, 230, 'a');
+    LCD_DisplayChar(380 + 32 * 8, 230, 'd');
+    LCD_DisplayChar(380 + 32 * 9, 230, 'i');
+    LCD_DisplayChar(380 + 32 * 10, 230, 'n');
+    LCD_DisplayChar(380 + 32 * 11, 230, 'g');
 
     LCD_SetColor(0xffFFFFFF);
     for (auto i = 0; i < 150; i++) {
         LCD_FillRect(100, 330, 4 * i, 6);
 
-        HAL_Delay(10);
+        HAL_Delay(1);
     }
     LCD_SetColor(0xff56C6ED);
+    LCD_SetColor(0xff560000);
     for (auto i = 0; i < 150; i++) {
         LCD_FillRect(100, 330, 4 * i, 6);
 
-        HAL_Delay(10);
+        HAL_Delay(1);
     }
-    HAL_Delay(100);
-};
-static volatile uint32_t h{7}, m{36}, s{40};
-
-auto drawTim = []() {
+}
+static void drawTim() {
     for (auto i = 0; i < 40; i++) {
         LCD_SetColor(0xffffffff);
         LCD_FillCircle(720, 400, 50 - i);
@@ -122,54 +205,8 @@ auto drawTim = []() {
     }
 
     // LCD_Clear();
-};
-
-extern "C" {
-
-extern void clock_it(void) {
-    static uint64_t tk = 0;
-    if (++tk > 1000) {
-        tk = 0;
-        ++s;
-    }
-    if (s == 60) {
-        s = 0;
-        ++m;
-    }
-    if (m == 60) {
-        m = 0;
-        ++h;
-    }
 }
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-    /* Prevent unused argument(s) compilation warning */
-    UNUSED(htim);
-    clock_it();
-    /* NOTE : This function should not be modified, when the callback is needed,
-              the HAL_TIM_PeriodElapsedCallback could be implemented in the user
-       file
-     */
-}
-
-// Init your peripherals in mcu/Core/*
-// App/* is only your Application level code range.
-void maMain(void) {
-    // USER CPP MAIN RANGE
-    // Simple light-up app.
-
-    auto fnExpamle = [&]() {
-        LED1_ON();
-        HAL_Delay(100);
-        LED1_OFF();
-        HAL_Delay(100);
-    };
-    fnExpamle();
-
-    const auto transData = "Hello World";
-
-    HAL_UART_Transmit(&huart1, (const uint8_t *)transData, 12, -1);
-
+static void lcdBackgroundDraw() {
     LCD_SetBackColor(0xff66CCFF);
     LCD_SetLayer(0);
     LCD_Clear();
@@ -183,9 +220,4 @@ void maMain(void) {
     LCD_FillRect(0, 0, 800, 480);
 
     LCD_SetLayer(1);
-
-    while (1) {
-        drawLoading();
-    }
-}
 }

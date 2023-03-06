@@ -9,8 +9,10 @@
  */
 #include "mt_led.hpp"
 
-#include "pch.h"
 #include <functional>
+
+#include "pch.h"
+
 extern void error_led_light(void) {
     auto shortDelay = []() {
         for (uint64_t i = 0; i < 100000; ++i)
@@ -40,5 +42,11 @@ extern void error_led_light(void) {
     light(longDelay);
     light(longDelay);
     light(longDelay);
+}
 
+extern void normal_led_light(void) {
+    LED1_ON();
+    HAL_Delay(100);
+    LED1_OFF();
+    HAL_Delay(100);
 }

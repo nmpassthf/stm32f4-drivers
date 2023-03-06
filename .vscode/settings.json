@@ -18,6 +18,8 @@
         "stdint.h": "c",
         "*.tcc": "c",
         "cstdio": "c",
-        "lcd.h": "c"
+        "lcd.h": "c",
+        "fatfs.h": "c",
+        "bsp_driver_sd.h": "c"
     }
 }

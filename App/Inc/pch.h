@@ -1,11 +1,11 @@
 /**
  * @file pch.h
  * @author nmpassthf (nmpassthf@gmail.com)
- * @brief 
+ * @brief
  * @date 2023-03-03
- * 
+ *
  * @copyright Copyright (c) nmpassthf 2023
- * 
+ *
  */
 #ifndef __M_PCH_H__
 #define __M_PCH_H__
@@ -15,6 +15,7 @@ extern "C" {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wvolatile"
 #include <stm32f4xx_hal.h>
+
 #include "main.h"
 #pragma GCC diagnostic pop
 #endif  // __cplusplus
@@ -27,7 +28,7 @@ extern UART_HandleTypeDef huart1;
 
 extern SDRAM_HandleTypeDef hsdram2;
 
-extern FMC_SDRAM_CommandTypeDef command;	
+extern FMC_SDRAM_CommandTypeDef command;
 
 extern void error_led_light(void);
 

@@ -5,7 +5,7 @@
 DEBUG = 1
 
 # 优化
-OPT = -Og
+OPT = -O0
 #OPT = -O2
 
 # Flash
@@ -23,7 +23,12 @@ PREFIX = arm-none-eabi-
 C_SOURCES =  \
     $(wildcard App/Src/*.c) \
     $(wildcard mcu/Drivers/STM32F4xx_HAL_Driver/Src/*.c)\
-    $(wildcard mcu/Core/Src/*.c)
+    $(wildcard mcu/Core/Src/*.c) \
+    $(wildcard mcu/FATFS/App/*.c) \
+    $(wildcard mcu/FATFS/Target/*.c) \
+    $(wildcard mcu/Middlewares/Third_Party/FatFs/src/*.c) \
+    $(wildcard mcu/Middlewares/Third_Party/FatFs/src/option/*.c) 
+
 
 #C_INCLUDES
 C_INCLUDES = \
@@ -32,7 +37,12 @@ C_INCLUDES = \
     -Imcu/Drivers/STM32F4xx_HAL_Driver/Inc \
     -Imcu/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy \
     -Imcu/Drivers/CMSIS/Device/ST/STM32F4xx/Include \
-    -Imcu/Drivers/CMSIS/Include
+    -Imcu/Drivers/CMSIS/Include \
+    -Imcu/FATFS/App \
+    -Imcu/FATFS/Target \
+    -Imcu/Middlewares/Third_Party/FatFs/src \
+    -Imcu/Middlewares/Third_Party/FatFs/src/option
+
 
 ######################################
 # C++ source

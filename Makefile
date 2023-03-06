@@ -89,7 +89,7 @@ CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 CPPFLAGS += $(CPP_VER) $(CPP_DEFS) $(C_DEFS) $(MCU) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 
 ifeq ($(DEBUG), 1)
-CPPFLAGS += -flto -ggdb
+CPPFLAGS += -g -gdwarf-2 -ggdb
 else
 CPPFLAGS += -flto
 endif

@@ -15,6 +15,9 @@
         "ostream": "cpp",
         "iosfwd": "cpp",
         "lcd_font.h": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "*.tcc": "c",
+        "cstdio": "c",
+        "lcd.h": "c"
     }
 }

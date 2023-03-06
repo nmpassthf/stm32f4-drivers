@@ -268,8 +268,38 @@ extern void LCD_SetFont(font_t *font) {  // TODO FONTS
  * @param y 字符坐标y
  * @param c ASCII char
  */
-extern void LCD_DisplayChar(uint16_t x, uint16_t y, char c) {
+extern void LCD_DisplayChar(uint16_t x, uint16_t y, char add) {
     // TODO
+    uint16_t index = 0, counter = 0;
+    uint8_t disChar;        // 字模的值
+    uint16_t Xaddress = x;  // 水平坐标
+
+    add -= 32;
+    for (index = 0; index < defaultFont->Sizes; index++) {
+        disChar =
+            defaultFont
+                ->pTable[add * defaultFont->Sizes + index];  // 获取字符的模值
+        for (counter = 0; counter < 8; counter++) {
+            if (disChar & 0x01) {
+                LCD_DrawPoint(Xaddress, y,
+                              LCD.Color);  // 当前模值不为0时，使用画笔色绘点
+            } else {
+                LCD_DrawPoint(Xaddress, y,
+                              LCD.BackColor);  // 否则使用背景色绘制点
+            }
+            disChar >>= 1;
+            Xaddress++;  // 水平坐标自加
+
+            if ((Xaddress - x) ==
+                defaultFont
+                    ->Width)  // 如果水平坐标达到了字符宽度，则退出当前循环
+            {  // 进入下一行的绘制
+                Xaddress = x;
+                y++;
+                break;
+            }
+        }
+    }
 }
 /**
  * @brief 显示ASCII字符串
@@ -280,6 +310,13 @@ extern void LCD_DisplayChar(uint16_t x, uint16_t y, char c) {
  */
 extern void LCD_DisplayString(uint16_t x, uint16_t y, char *p) {
     // TODO
+    while ((x < LCD_Width) &&
+           (*p != 0))  // 判断显示坐标是否超出显示区域并且字符是否为空字符
+    {
+        LCD_DisplayChar(x, y, *p);
+        x += defaultFont->Width;  // 显示下一个字符
+        p++;                    // 取下一个字符地址
+    }
 }
 /**
  * @brief 显示扩展Unicode字符，如汉字
@@ -309,9 +346,24 @@ extern void LCD_DisplayUnicodeText(uint16_t x, uint16_t y, char *pText) {
 extern void LCD_SetNumDisplayMode(eLCDShowNumMode mode) {
     // TODO
 }
+#include <stdio.h>
 extern void LCD_DisplayNumber(uint16_t x, uint16_t y, int32_t number,
                               uint8_t len) {
     // TODO
+    char Number_Buffer[15];  // 用于存储转换后的字符串
+
+    if (LCD.ShowNum_Mode == Fill_Zero)  // 多余位补0
+    {
+        sprintf(Number_Buffer, "%0.*d", len,
+                number);  // 将 number 转换成字符串，便于显示
+    } else                // 多余位补空格
+    {
+        sprintf(Number_Buffer, "%*d", len,
+                number);  // 将 number 转换成字符串，便于显示
+    }
+
+    LCD_DisplayString(x, y,
+                      (char *)Number_Buffer);  // 将转换得到的字符串显示出来
 }
 extern void LCD_DisplayDecimals(uint16_t x, uint16_t y, double number,
                                 uint8_t len, uint8_t decs) {
@@ -546,6 +598,38 @@ extern void LCD_FillRect(uint16_t x, uint16_t y, uint16_t width,
  */
 extern void LCD_FillCircle(uint16_t x, uint16_t y, uint16_t r) {
     // TODO
+    int32_t D;     /* Decision Variable */
+    uint32_t CurX; /* Current X Value */
+    uint32_t CurY; /* Current Y Value */
+
+    if (r > 512 || r == 0)
+        return;
+
+    D = 3 - (r << 1);
+
+    CurX = 0;
+    CurY = r;
+
+    while (CurX <= CurY) {
+        if (CurY > 0) {
+            LCD_DrawLine(x - CurX, y - CurY, x - CurX, y - CurY + 2 * CurY);
+            LCD_DrawLine(x + CurX, y - CurY, x + CurX, y - CurY + 2 * CurY);
+        }
+
+        if (CurX > 0) {
+            LCD_DrawLine(x - CurY, y - CurX, x - CurY, y - CurX + 2 * CurX);
+            LCD_DrawLine(x + CurY, y - CurX, x + CurY, y - CurX + 2 * CurX);
+        }
+        if (D < 0) {
+            D += (CurX << 2) + 6;
+        } else {
+            D += ((CurX - CurY) << 2) + 10;
+            CurY--;
+        }
+        CurX++;
+    }
+
+    LCD_DrawCircle(x, y, r);
 }
 /**
  * @brief 填充椭圆

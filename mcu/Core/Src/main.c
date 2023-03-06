@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "fatfs.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -47,6 +48,10 @@ LTDC_HandleTypeDef hltdc;
 
 RTC_HandleTypeDef hrtc;
 
+SD_HandleTypeDef hsd;
+
+TIM_HandleTypeDef htim1;
+
 UART_HandleTypeDef huart1;
 
 SDRAM_HandleTypeDef hsdram2;
@@ -66,6 +71,8 @@ static void MX_USART1_UART_Init(void);
 static void MX_DMA2D_Init(void);
 static void MX_LTDC_Init(void);
 static void MX_RTC_Init(void);
+static void MX_TIM1_Init(void);
+static void MX_SDIO_SD_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -107,6 +114,9 @@ int main(void)
   MX_DMA2D_Init();
   MX_LTDC_Init();
   MX_RTC_Init();
+  MX_TIM1_Init();
+  MX_SDIO_SD_Init();
+  MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -310,13 +320,12 @@ static void MX_LTDC_Init(void)
   /* USER CODE BEGIN LTDC_Init 2 */
 
     hltdc.Instance = LTDC;
-    hltdc.Init.HSPolarity = LTDC_HSPOLARITY_AL;  // 低电平有�?
-    hltdc.Init.VSPolarity = LTDC_VSPOLARITY_AL;  // 低电平有�?
-    hltdc.Init.DEPolarity =
-        LTDC_DEPOLARITY_AL;  // 低电平有效，要注意的是，很多面板都是高电平有效，但是429�?要设置成低电平才能正常显�?
-    hltdc.Init.PCPolarity = LTDC_PCPOLARITY_IPC;  // 正常时钟信号
+    hltdc.Init.HSPolarity = LTDC_HSPOLARITY_AL;
+    hltdc.Init.VSPolarity = LTDC_VSPOLARITY_AL;
+    hltdc.Init.DEPolarity = LTDC_DEPOLARITY_AL;
+    hltdc.Init.PCPolarity = LTDC_PCPOLARITY_IPC;
 
-    hltdc.Init.HorizontalSync = LCD_HSW - 1;  // 根据屏幕设置参数即可
+    hltdc.Init.HorizontalSync = LCD_HSW - 1;
     hltdc.Init.VerticalSync = LCD_VSW - 1;
     hltdc.Init.AccumulatedHBP = LCD_HBP + LCD_HSW - 1;
     hltdc.Init.AccumulatedVBP = LCD_VBP + LCD_VSW - 1;
@@ -338,53 +347,37 @@ static void MX_LTDC_Init(void)
     pLayerCfg.ImageWidth = LCD_Width;     // 显示区域宽度
     pLayerCfg.ImageHeight = LCD_Height;   // 显示区域高度
 
-    // 配置 layer0 的恒定�?�明度，�?终写�? LTDC_LxCACR 寄存�?
-    // �?要注意的是，这个参数是直接配置整�? layer0
-    // 的�?�明度，这里设置�?255即不透明
-    pLayerCfg.Alpha = 255;  // 透明�?
+    pLayerCfg.Alpha = 255;
 
-    // 设置 layer1 的层混合系数，最终写�? LTDC_LxBFCR 寄存�?
-    // 该参数用于设�? layer1 �? (layer0+背景）之间的颜色混合系数，计算公式为 �?
-    // 混合后的颜色 =  BF1 * layer1的颜�? + BF2 * (layer0+背景混合后的颜色�?
-    // 如果 layer1 使用了�?�明色，则必须配置成 LTDC_BLENDING_FACTOR1_PAxCA �?
-    // LTDC_BLENDING_FACTOR2_PAxCA，否则ARGB中的A通道不起作用
-    // 更多的介绍可以查�? 参�?�手册关�? LTDC_LxBFCR 寄存器的介绍
-    pLayerCfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_PAxCA;  // 混合系数
-    pLayerCfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_PAxCA;  // 混合系数
+    pLayerCfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_PAxCA;
+    pLayerCfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_PAxCA;
 
-    // layer0
-    // 的显存地�?，本例程使用外部的SDRAM作为显存，起始地�?0xD0000000，SDRAM大小�?16M
-    // layer0 显存大小等于 = LCD_Width * LCD_Width *
-    // BytesPerPixel_0（每个像素所占字节大小） 因为 SDRAM
-    // 大小�?16M，用户设置的区域�?定不能超过这个�?�！
-    pLayerCfg.FBStartAdress = (uint32_t)(&lcd_vram[0][0]);  // 显存地址
+    // 显存地址
+    pLayerCfg.FBStartAdress = (uint32_t)(&lcd_vram[0][0]);
 
-    // 配置layer1 的初始默认颜色，包括A,R,G,B 的�?? ，最终写�? LTDC_LxDCCR 寄存�?
-    pLayerCfg.Alpha0 = 0;           // 透明�?
-    pLayerCfg.Backcolor.Blue = 0;   // 初始颜色
-    pLayerCfg.Backcolor.Green = 0;  // 初始颜色
-    pLayerCfg.Backcolor.Red = 0;    // 初始颜色
+    pLayerCfg.Alpha0 = 0;
+    pLayerCfg.Backcolor.Blue = 0;
+    pLayerCfg.Backcolor.Green = 0;
+    pLayerCfg.Backcolor.Red = 0;
 
-    HAL_LTDC_ConfigLayer(&hltdc, &pLayerCfg, 0);  // 配置�?0，背景层
+    HAL_LTDC_ConfigLayer(&hltdc, &pLayerCfg, 0);  // 配置�???0，背景层
 
 #if ((ColorMode_0 == LTDC_PIXEL_FORMAT_RGB888) || \
-     (ColorMode_0 ==                              \
-      LTDC_PIXEL_FORMAT_ARGB8888))  // 判断是否使用24位或�?32位色
+     (ColorMode_0 == LTDC_PIXEL_FORMAT_ARGB8888))  // 判断是否使用24位或32位色
 
-    // 使能颜色抖动�?24位以上的颜色必须打开，否则无法达到相应的效果
-    HAL_LTDC_EnableDither(&hltdc);  // �?启颜色抖�?
+    // 使能颜色抖动�???24位以上的颜色必须打开，否则无法达到相应的效果
+    HAL_LTDC_EnableDither(&hltdc);
 
-    // 当颜色格式为24位色时，重新设置帧缓冲区的寄存器，按�?32位格式来设置，即每个像素�?4字节
-    // 如果使用HAL库默认的设置，在刷屏或�?�显示字符的时�?�，容易造成屏幕花屏
+    // 当颜色格式为24位色时，重新设置帧缓冲区的寄存器，按�???32位格式来设置，即每个像素�???4字节
+    // 如果使用HAL库默认的设置，在刷屏或�?�显示字符的时�?�，容易造成屏幕花屏
     // 这里设置的只是帧缓冲区的格式，和SDRAM显存无关
     LTDC_Layer1->CFBLR = (LCD_Width * 4 << 16) | (LCD_Width * 4 + 3);
     HAL_LTDC_Reload(&hltdc, LTDC_RELOAD_VERTICAL_BLANKING);  // 重新载入参数
 #endif
 
-    /*---------------------------------- layer1 显示配置
-     * --------------------------------*/
+    // layer1 显示配置
 
-#if (LCD_NUM_LAYERS == 2)  // 当定义了双层�?
+#if (LCD_NUM_LAYERS == 2)  // 当定义了双层
 
     pLayerCfg1.WindowX0 = 0;               // 水平起点
     pLayerCfg1.WindowX1 = LCD_Width;       // 水平终点
@@ -394,48 +387,33 @@ static void MX_LTDC_Init(void)
     pLayerCfg1.ImageWidth = LCD_Width;     // 显示区域宽度
     pLayerCfg1.ImageHeight = LCD_Height;   // 显示区域高度
 
-    // 配置 layer1 的恒定�?�明度，�?终写�? LTDC_LxCACR 寄存�?
-    // �?要注意的是，这个参数是直接配置整�? layer1
-    // 的�?�明度，这里设置�?255即不透明
-    pLayerCfg1.Alpha = 255;  // 透明�?
+    pLayerCfg1.Alpha = 255;
 
-    // 设置 layer1 的层混合系数，最终写�? LTDC_LxBFCR 寄存�?
-    // 该参数用于设�? layer1 �? (layer0+背景）之间的颜色混合系数，计算公式为 �?
-    // 混合后的颜色 =  BF1 * layer1的颜�? + BF2 * (layer0+背景混合后的颜色�?
-    // 如果 layer1 使用了�?�明色，则必须配置成 LTDC_BLENDING_FACTOR1_PAxCA �?
-    // LTDC_BLENDING_FACTOR2_PAxCA，否则ARGB中的A通道不起作用
-    // 更多的介绍可以查�? 参�?�手册关�? LTDC_LxBFCR 寄存器的介绍
     pLayerCfg1.BlendingFactor1 = LTDC_BLENDING_FACTOR1_PAxCA;  // 混合系数
     pLayerCfg1.BlendingFactor2 = LTDC_BLENDING_FACTOR2_PAxCA;  // 混合系数
 
     // layer1
-    // 的显存地�?，本例程使用外部的SDRAM作为显存，起始地�?0xD0000000，SDRAM大小�?16M
-    // 由于 layer0 会占用一部分显存，因此设�? layer1 显存时，�?要进行一定偏�?
+
     pLayerCfg1.FBStartAdress = (uint32_t)(&lcd_vram[1][0]);  // 显存地址
 
-    // 配置layer1 的初始默认颜色，包括A,R,G,B 的�?? ，最终写�? LTDC_LxDCCR 寄存�?
-    pLayerCfg1.Alpha0 = 0;           // 透明�?
-    pLayerCfg1.Backcolor.Blue = 0;   // 初始颜色
-    pLayerCfg1.Backcolor.Green = 0;  // 初始颜色
-    pLayerCfg1.Backcolor.Red = 0;    // 初始颜色
+    pLayerCfg1.Alpha0 = 0;
+    pLayerCfg1.Backcolor.Blue = 0;
+    pLayerCfg1.Backcolor.Green = 0;
+    pLayerCfg1.Backcolor.Red = 0;
 
-    HAL_LTDC_ConfigLayer(&hltdc, &pLayerCfg1, 1);  // 配置�?1，前景层
+    HAL_LTDC_ConfigLayer(&hltdc, &pLayerCfg1, 1);
 
 #if ((ColorMode_1 == LTDC_PIXEL_FORMAT_RGB888) || \
-     (ColorMode_1 ==                              \
-      LTDC_PIXEL_FORMAT_ARGB8888))  // 判断是否使用24位或�?32位色
+     (ColorMode_1 == LTDC_PIXEL_FORMAT_ARGB8888))
 
-    // 使能颜色抖动�?24位以上的颜色必须打开，否则无法达到相应的效果
-    HAL_LTDC_EnableDither(&hltdc);  // �?启颜色抖�?
+    HAL_LTDC_EnableDither(&hltdc);
 
-    // 当颜色格式为24位色时，重新设置帧缓冲区的寄存器，按�?32位格式来设置，即每个像素�?4字节
-    // 如果使用HAL库默认的设置，在刷屏或�?�显示字符的时�?�，容易造成屏幕花屏
-    // 这里设置的只是帧缓冲区的格式，和SDRAM显存无关
     LTDC_Layer2->CFBLR = (LCD_Width * 4 << 16) | (LCD_Width * 4 + 3);
     HAL_LTDC_Reload(&hltdc, LTDC_RELOAD_VERTICAL_BLANKING);  // 重新载入参数
 #endif
 
 #endif
+
     LCD_Init();
   /* USER CODE END LTDC_Init 2 */
 
@@ -473,6 +451,81 @@ static void MX_RTC_Init(void)
   /* USER CODE BEGIN RTC_Init 2 */
 
   /* USER CODE END RTC_Init 2 */
+
+}
+
+/**
+  * @brief SDIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SDIO_SD_Init(void)
+{
+
+  /* USER CODE BEGIN SDIO_Init 0 */
+
+  /* USER CODE END SDIO_Init 0 */
+
+  /* USER CODE BEGIN SDIO_Init 1 */
+
+  /* USER CODE END SDIO_Init 1 */
+  hsd.Instance = SDIO;
+  hsd.Init.ClockEdge = SDIO_CLOCK_EDGE_RISING;
+  hsd.Init.ClockBypass = SDIO_CLOCK_BYPASS_DISABLE;
+  hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
+  hsd.Init.BusWide = SDIO_BUS_WIDE_1B;
+  hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_ENABLE;
+  hsd.Init.ClockDiv = 0;
+  /* USER CODE BEGIN SDIO_Init 2 */
+
+  /* USER CODE END SDIO_Init 2 */
+
+}
+
+/**
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM1_Init(void)
+{
+
+  /* USER CODE BEGIN TIM1_Init 0 */
+
+  /* USER CODE END TIM1_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM1_Init 1 */
+
+  /* USER CODE END TIM1_Init 1 */
+  htim1.Instance = TIM1;
+  htim1.Init.Prescaler = 179;
+  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim1.Init.Period = 65535;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV4;
+  htim1.Init.RepetitionCounter = 0;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM1_Init 2 */
+  HAL_TIM_Base_Start_IT(&htim1);
+
+  /* USER CODE END TIM1_Init 2 */
 
 }
 
@@ -552,7 +605,7 @@ static void MX_FMC_Init(void)
   }
 
   /* USER CODE BEGIN FMC_Init 2 */
-    m_hw_sdram_init(&hsdram2,&command);
+    m_hw_sdram_init(&hsdram2, &command);
   /* USER CODE END FMC_Init 2 */
 }
 

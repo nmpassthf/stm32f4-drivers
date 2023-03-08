@@ -21,5 +21,6 @@
         "lcd.h": "c",
         "fatfs.h": "c",
         "bsp_driver_sd.h": "c"
-    }
+    },
+    "cortex-debug.variableUseNaturalFormat": false
 }

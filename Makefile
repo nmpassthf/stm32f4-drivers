@@ -69,7 +69,7 @@ AS_DEFS =
 AS_INCLUDES = 
 
 # compile gcc flags
-ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
+ASFLAGS += $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 
 CFLAGS += $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 
@@ -104,7 +104,7 @@ CPPFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 # libraries
 LIBS = -lc -lm -lnosys 
 LIBDIR = 
-LDFLAGS = $(MCU) $(LDSPECSFLAGS) $(CPP_VER) -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
+LDFLAGS += $(MCU) $(LDSPECSFLAGS) $(CPP_VER) -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
 
 ifeq ($(DEBUG), 0)
 LDFLAGS += -flto 
@@ -168,6 +168,9 @@ clear: clean
 #######################################
 flash: $(OUTPUT_DIR)/$(TARGET).hex
 	$(OPENOCD) $(OPENOCD_CFG) -c "program $(OUTPUT_DIR)/$(TARGET).hex" -c "exit"
+
+flashyp: $(OUTPUT_DIR)/$(TARGET).hex
+	-cp $(OUTPUT_DIR)/$(TARGET).hex $(OPENOCD_FLASHYP_DRIVE)
 
 #######################################
 # dependencies

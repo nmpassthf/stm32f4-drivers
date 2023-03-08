@@ -28,27 +28,33 @@ extern "C" {
 #include "sdram.h"
 
 extern SD_HandleTypeDef hsd;
-HAL_SD_CardInfoTypeDef SDCardInfo;
-FATFS fs{};
+extern HAL_SD_CardInfoTypeDef SDCardInfo;
+FATFS fs{0};
+char UserPath[10] = "0:";
+
 // Init your peripherals in mcu/Core/*
 // App/* is only your Application level code range.
 void maMain(void) {
+
     lcdBackgroundDraw();
 
     const char transData[] = "Hello World !";
-    // auto print = [&](auto word, auto size) {
-    //     HAL_UART_Transmit(&huart1, (const uint8_t *)word, size, -1);
-    // };
-    // auto printd = [&](auto word) {
-    //     HAL_UART_Transmit(&huart1, (const uint8_t *)word, strlen(word), -1);
-    // };
-    // print(transData, sizeof(transData));
-    // auto hal_err = HAL_UART_Transmit(&huart1, (const uint8_t *)transData,
-    //                                  14, -1);
+    auto print = [&](auto word, auto size) {
+        HAL_UART_Transmit(&huart1, (const uint8_t *)word, size, -1);
+    };
+    auto printd = [&](auto word) {
+        HAL_UART_Transmit(&huart1, (const uint8_t *)word, strlen(word), -1);
+    };
+    print(transData, sizeof(transData));
+    auto hal_err = HAL_UART_Transmit(&huart1, (const uint8_t *)transData,
+                                     14, -1);
 
     drawLoading();
+    SD_Driver.disk_initialize(0);
+
+    HAL_Delay(100);
     // mount the default drive
-    auto MyFile_Res = f_mount(&SDFatFS, "0:", 1);
+    auto MyFile_Res = f_mount(&fs, UserPath, 1);
     if (MyFile_Res != FR_OK) {
         while (1)
             ;
@@ -108,18 +114,16 @@ void maMain(void) {
         // }
         // MyFile_Res = f_closedir(&dir);
         FIL MyFile;
-        MyFile_Res =
-            f_open(&MyFile, "0:/FatFs Test.txt", FA_CREATE_ALWAYS | FA_WRITE);
+        MyFile_Res = f_open(&MyFile, "0:/Test.txt", FA_OPEN_ALWAYS | FA_CREATE_ALWAYS | FA_READ | FA_WRITE);
+        
         char strp[] = "中国汉字博大精深";
         if (MyFile_Res == FR_OK) {
             printf("文件打开/创建成功，准备写入数据...\r\n");
 
             MyFile_Res = f_write(&MyFile, strp, sizeof(strp),
-                                 &flen);  // 向文件写入数据
-            if (MyFile_Res == FR_OK) {
-            } else {
+                          &flen);  // 向文件写入数据
+
                 f_close(&MyFile);  // 关闭文件
-            }
         }
         FIL fp{};
         MyFile_Res = f_open(&fp, "0:/zyp.txt", FA_READ | FA_OPEN_EXISTING);
@@ -129,6 +133,7 @@ void maMain(void) {
         // str = std::wstring{buf, 512};
         // print(buf, wcslen(buf));
 
+        printd("HELLO WORLD\n\n");
         drawTim();
     }
 }

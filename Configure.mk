@@ -12,6 +12,8 @@ OPT = -O0
 OPENOCD = openocd
 OPENOCD_CFG = -f openocd.cfg
 
+OPENOCD_FLASHYP_DRIVE = E:/
+
 ######################################
 # GCC/G++ binary prefix
 ######################################
@@ -52,6 +54,11 @@ CPP_SOURCES =  \
 
 CPP_INCLUDES = \
     $(C_INCLUDES)
+
+#######################################
+# CFLAGS
+#######################################
+# LDFLAGS = -stack,
 
 #######################################
 # CFLAGS

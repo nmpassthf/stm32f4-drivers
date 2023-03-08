@@ -49,8 +49,6 @@ LTDC_HandleTypeDef hltdc;
 RTC_HandleTypeDef hrtc;
 
 SD_HandleTypeDef hsd;
-DMA_HandleTypeDef hdma_sdio_rx;
-DMA_HandleTypeDef hdma_sdio_tx;
 
 TIM_HandleTypeDef htim1;
 
@@ -68,7 +66,6 @@ FMC_SDRAM_CommandTypeDef command;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_DMA_Init(void);
 static void MX_FMC_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_DMA2D_Init(void);
@@ -112,7 +109,6 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_FMC_Init();
   MX_USART1_UART_Init();
   MX_DMA2D_Init();
@@ -143,9 +139,6 @@ int main(void)
 
     GPIO_InitStruct.Pin = GPIO_PIN_7;  // LED2引脚
     HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
-
-    // 初始化SD�?.
-    SD_Driver.disk_initialize(0);
 
     while (1) {
     /* USER CODE END WHILE */
@@ -367,15 +360,15 @@ static void MX_LTDC_Init(void)
     pLayerCfg.Backcolor.Green = 0;
     pLayerCfg.Backcolor.Red = 0;
 
-    HAL_LTDC_ConfigLayer(&hltdc, &pLayerCfg, 0);  // 配置�??????0，背景层
+    HAL_LTDC_ConfigLayer(&hltdc, &pLayerCfg, 0);  // 配置�??????????0，背景层
 
 #if ((ColorMode_0 == LTDC_PIXEL_FORMAT_RGB888) || \
      (ColorMode_0 == LTDC_PIXEL_FORMAT_ARGB8888))  // 判断是否使用24位或32位色
 
-    // 使能颜色抖动�??????24位以上的颜色必须打开，否则无法达到相应的效果
+    // 使能颜色抖动�??????????24位以上的颜色必须打开，否则无法达到相应的效果
     HAL_LTDC_EnableDither(&hltdc);
 
-    // 当颜色格式为24位色时，重新设置帧缓冲区的寄存器，按�??????32位格式来设置，即每个像素�??????4字节
+    // 当颜色格式为24位色时，重新设置帧缓冲区的寄存器，按�??????????32位格式来设置，即每个像素�??????????4字节
     // 如果使用HAL库默认的设置，在刷屏或�?�显示字符的时�?�，容易造成屏幕花屏
     // 这里设置的只是帧缓冲区的格式，和SDRAM显存无关
     LTDC_Layer1->CFBLR = (LCD_Width * 4 << 16) | (LCD_Width * 4 + 3);
@@ -478,7 +471,7 @@ static void MX_SDIO_SD_Init(void)
   /* USER CODE END SDIO_Init 1 */
   hsd.Instance = SDIO;
   hsd.Init.ClockEdge = SDIO_CLOCK_EDGE_RISING;
-  hsd.Init.ClockBypass = SDIO_CLOCK_BYPASS_ENABLE;
+  hsd.Init.ClockBypass = SDIO_CLOCK_BYPASS_DISABLE;
   hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
   hsd.Init.BusWide = SDIO_BUS_WIDE_1B;
   hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_DISABLE;
@@ -569,25 +562,6 @@ static void MX_USART1_UART_Init(void)
 
 }
 
-/**
-  * Enable DMA controller clock
-  */
-static void MX_DMA_Init(void)
-{
-
-  /* DMA controller clock enable */
-  __HAL_RCC_DMA2_CLK_ENABLE();
-
-  /* DMA interrupt init */
-  /* DMA2_Stream3_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
-  /* DMA2_Stream6_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream6_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream6_IRQn);
-
-}
-
 /* FMC initialization function */
 static void MX_FMC_Init(void)
 {
@@ -664,12 +638,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(KEY_ONBORD_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PC13 */
-  GPIO_InitStruct.Pin = GPIO_PIN_13;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pin : LTDC_BL_Pin */
   GPIO_InitStruct.Pin = LTDC_BL_Pin;

@@ -27,6 +27,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
+#include "fatfs_platform.h"
 
 /* Exported types --------------------------------------------------------*/
 /**
@@ -58,20 +59,6 @@
 /* USER CODE END 0 */
 #else
 /* USER CODE BEGIN BSP_H_CODE */
-
-/* DMA definitions for SD DMA transfer */
-#define __DMAx_TxRx_CLK_ENABLE            __HAL_RCC_DMA2_CLK_ENABLE
-#define SD_DMAx_Tx_CHANNEL                DMA_CHANNEL_4
-#define SD_DMAx_Rx_CHANNEL                DMA_CHANNEL_4
-#define SD_DMAx_Tx_STREAM                 DMA2_Stream6  
-#define SD_DMAx_Rx_STREAM                 DMA2_Stream3  
-#define SD_DMAx_Tx_IRQn                   DMA2_Stream6_IRQn
-#define SD_DMAx_Rx_IRQn                   DMA2_Stream3_IRQn
-#define BSP_SD_IRQHandler                 SDIO_IRQHandler
-#define BSP_SD_DMA_Tx_IRQHandler          DMA2_Stream6_IRQHandler   
-#define BSP_SD_DMA_Rx_IRQHandler          DMA2_Stream3_IRQHandler 
-#define SD_DetectIRQHandler()             HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_8)
-
 /* Exported functions --------------------------------------------------------*/
 uint8_t BSP_SD_Init(void);
 uint8_t BSP_SD_ITConfig(void);

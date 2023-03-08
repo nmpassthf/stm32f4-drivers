@@ -29,7 +29,7 @@ extern "C" {
 
 extern SD_HandleTypeDef hsd;
 HAL_SD_CardInfoTypeDef SDCardInfo;
-FATFS fs;
+FATFS fs{};
 // Init your peripherals in mcu/Core/*
 // App/* is only your Application level code range.
 void maMain(void) {
@@ -48,7 +48,7 @@ void maMain(void) {
 
     drawLoading();
     // mount the default drive
-    auto MyFile_Res = f_mount(&fs, "0:", 1);
+    auto MyFile_Res = f_mount(&SDFatFS, "0:", 1);
     if (MyFile_Res != FR_OK) {
         while (1)
             ;
@@ -108,13 +108,14 @@ void maMain(void) {
         // }
         // MyFile_Res = f_closedir(&dir);
         FIL MyFile;
-        MyFile_Res = f_open(&MyFile, "0:/FatFs Test.txt", FA_CREATE_ALWAYS | FA_WRITE);
+        MyFile_Res =
+            f_open(&MyFile, "0:/FatFs Test.txt", FA_CREATE_ALWAYS | FA_WRITE);
         char strp[] = "中国汉字博大精深";
         if (MyFile_Res == FR_OK) {
             printf("文件打开/创建成功，准备写入数据...\r\n");
 
             MyFile_Res = f_write(&MyFile, strp, sizeof(strp),
-                          &flen);  // 向文件写入数据
+                                 &flen);  // 向文件写入数据
             if (MyFile_Res == FR_OK) {
             } else {
                 f_close(&MyFile);  // 关闭文件

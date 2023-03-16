@@ -133,7 +133,7 @@ void maMain(void) {
         // str = std::wstring{buf, 512};
         // print(buf, wcslen(buf));
 
-        printd("HELLO WORLD\n\n");
+        printd("HELLO WORLD\n");
         drawTim();
     }
 }

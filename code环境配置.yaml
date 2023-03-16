@@ -1,0 +1,13 @@
+编译器 none-eabi-gcc
+编译工具 Makefile/cmake
+烧录 openocd
+工程生成 stm32
+IDE code
+    code插件
+        c/c++
+            configure:
+                 c_cpp_properties.json
+        makefile/cmake
+            configure:
+                Makefile/CMakeLists.txt
+

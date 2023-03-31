@@ -9,8 +9,6 @@
  */
 #include "mt_led.hpp"
 
-#include <functional>
-
 #include "pch.h"
 
 extern void error_led_light(void) {
@@ -24,7 +22,7 @@ extern void error_led_light(void) {
             for (uint64_t i = 0; i < 100; ++i)
                 ;
     };
-    auto light = [](std::function<void()> delay) {
+    auto light = [](auto delay) {
         delay();
         LED2_OFF();
         delay();

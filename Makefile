@@ -39,14 +39,14 @@ OUTPUT_DIR = target
 # either it can be added to the PATH environment variable.
 ifdef GCC_PATH
 CC = $(GCC_PATH)/$(PREFIX)gcc
-CPP = $(GCC_PATH)/$(PREFIX)g++
+CPP = $(GCC_PATH)/$(PREFIX)gcc
 AS = $(GCC_PATH)/$(PREFIX)gcc -x assembler-with-cpp
 CP = $(GCC_PATH)/$(PREFIX)objcopy
 SZ = $(GCC_PATH)/$(PREFIX)size
 DUMP = $(GCC_PATH)/$(PREFIX)objdump
 else
 CC = $(PREFIX)gcc
-CPP = $(PREFIX)g++
+CPP = $(PREFIX)gcc
 AS = $(PREFIX)gcc -x assembler-with-cpp
 CP = $(PREFIX)objcopy
 SZ = $(PREFIX)size

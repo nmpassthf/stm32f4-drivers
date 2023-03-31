@@ -8,7 +8,6 @@
 //  *
 //  */
 
-#include <functional>
 #include <string>
 
 static void lcdBackgroundDraw();
@@ -17,7 +16,6 @@ static void drawLoading();
 
 extern "C" {
 #include <string.h>
-
 #include "diskio.h"
 #include "fatfs.h"
 #include "lcd.h"
@@ -35,7 +33,6 @@ char UserPath[10] = "0:";
 // Init your peripherals in mcu/Core/*
 // App/* is only your Application level code range.
 void maMain(void) {
-
     lcdBackgroundDraw();
 
     const char transData[] = "Hello World !";
@@ -46,8 +43,8 @@ void maMain(void) {
         HAL_UART_Transmit(&huart1, (const uint8_t *)word, strlen(word), -1);
     };
     print(transData, sizeof(transData));
-    auto hal_err = HAL_UART_Transmit(&huart1, (const uint8_t *)transData,
-                                     14, -1);
+    auto hal_err =
+        HAL_UART_Transmit(&huart1, (const uint8_t *)transData, 14, -1);
 
     drawLoading();
     SD_Driver.disk_initialize(0);
@@ -114,16 +111,18 @@ void maMain(void) {
         // }
         // MyFile_Res = f_closedir(&dir);
         FIL MyFile;
-        MyFile_Res = f_open(&MyFile, "0:/Test.txt", FA_OPEN_ALWAYS | FA_CREATE_ALWAYS | FA_READ | FA_WRITE);
-        
+        MyFile_Res =
+            f_open(&MyFile, "0:/Test.txt",
+                   FA_OPEN_ALWAYS | FA_CREATE_ALWAYS | FA_READ | FA_WRITE);
+
         char strp[] = "中国汉字博大精深";
         if (MyFile_Res == FR_OK) {
             printf("文件打开/创建成功，准备写入数据...\r\n");
 
             MyFile_Res = f_write(&MyFile, strp, sizeof(strp),
-                          &flen);  // 向文件写入数据
+                                 &flen);  // 向文件写入数据
 
-                f_close(&MyFile);  // 关闭文件
+            f_close(&MyFile);  // 关闭文件
         }
         FIL fp{};
         MyFile_Res = f_open(&fp, "0:/zyp.txt", FA_READ | FA_OPEN_EXISTING);
